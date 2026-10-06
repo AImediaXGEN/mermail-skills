@@ -7,7 +7,7 @@
     "mermail-agent-inbox",
     "mermail-cli",
     "mermail-gtm-agent",
-    "mermail-mcp",
+    "mermail-mcp", "mermail-opportunity-radar",
     "mermail-research-agent",
     "mermail-scheduling-agent",
     "mermail-support-agent",

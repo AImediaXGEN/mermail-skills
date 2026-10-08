@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-mermail-opportunity-radar — reference runner (v0.1).
+mermail-opportunity-radar -- reference runner (v0.1).
 
 Turns a Mermail inbox into a zero-capital opportunity pipeline:
   1. Discover the mailbox via the Mermail REST API.
@@ -32,7 +32,7 @@ STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "state.jso
 MAILBOX_EMAIL = os.environ.get("MERMAIL_MAILBOX", "opportunity-radar@mermail.app")
 KEY = os.environ["MERMAIL_API_KEY"]
 
-API_CALLS = []  # (method, path, credits) — for the transparency report
+API_CALLS = []  # (method, path, credits) -- for the transparency report
 _LAST_CALL = 0.0
 _MIN_INTERVAL = 7.0  # Free tier is ~10 RPM; stay polite
 
@@ -55,13 +55,13 @@ def api(method, path, payload=None, _retried=False):
             body = r.read()
     except urllib.error.HTTPError as e:
         if e.code == 429 and not _retried:
-            print("    (rate limit hit — backing off 65s, Free tier is ~10 RPM)")
+            print("    (rate limit hit -- backing off 65s, Free tier is ~10 RPM)")
             time.sleep(65)
             return api(method, path, payload, _retried=True)
         raise
     except (TimeoutError, ConnectionError, socket.timeout) as e:
         if not _retried:
-            print(f"    (transient network error — retrying once: {e})")
+            print(f"    (transient network error -- retrying once: {e})")
             time.sleep(5)
             return api(method, path, payload, _retried=True)
         raise
@@ -222,8 +222,8 @@ def score(terms):
     else:
         decision = "NO-GO"
 
-    reason_bits = [f"EV≈${ev:,.1f}/entry", f"effort {terms['effort_label']}",
-                   f"friction ×{terms['friction']}"]
+    reason_bits = [f"EV~=${ev:,.1f}/entry", f"effort {terms['effort_label']}",
+                   f"friction x{terms['friction']}"]
     if terms["submissions"] and terms["submissions"] >= 40:
         reason_bits.append(f"saturated ({terms['submissions']} submissions)")
         if decision == "MAYBE":
@@ -253,14 +253,14 @@ def save_state(state):
 
 def main():
     print("=" * 64)
-    print("mermail-opportunity-radar  ·  inbox → scored opportunity shortlist")
+    print("mermail-opportunity-radar  -  inbox -> scored opportunity shortlist")
     print("=" * 64)
 
     # 1. discover mailbox
     mailboxes = api("GET", "/api/v1/mailboxes")
     mb = next((m for m in mailboxes if m.get("email") == MAILBOX_EMAIL), mailboxes[0])
     mb_id = mb["public_id"]
-    print(f"\n[1] Mailbox: {mb['email']}  (id {mb_id[:8]}…)")
+    print(f"\n[1] Mailbox: {mb['email']}  (id {mb_id[:8]}...)")
 
     # 2. list recent emails (list bodies are truncated; each new message
     #    is fetched in full below before classification)
@@ -285,11 +285,11 @@ def main():
         full = full.get("email", full)
         sender = str(full.get("sender", ""))
         if full.get("folder_id") != "inbox":
-            # sent-folder copy of a seed the skill itself sent — not inbound mail
+            # sent-folder copy of a seed the skill itself sent -- not inbound mail
             processed.add(e["id"])
             continue
         if full.get("scan_status") != "clean":
-            print(f"    ! skipped {e['id'][:8]}… (scan_status={full.get('scan_status')})")
+            print(f"    ! skipped {e['id'][:8]}... (scan_status={full.get('scan_status')})")
             processed.add(e["id"])
             continue
         subject = full.get("subject", "")
@@ -321,21 +321,21 @@ def main():
     # 3. rank
     opportunities.sort(key=lambda t: t[1]["score"], reverse=True)
     print("\n" + "=" * 64)
-    print("RANKED SHORTLIST (score = expected $/entry ÷ effort ÷ friction)")
+    print("RANKED SHORTLIST (score = expected $/entry / effort / friction)")
     print("=" * 64)
     for i, (t, r) in enumerate(opportunities, 1):
         dl = f"{r['days_left']}d left" if r["days_left"] is not None else "rolling"
-        print(f"\n#{i} [{r['decision']}] score {r['score']} — {t['subject'][:60]}")
+        print(f"\n#{i} [{r['decision']}] score {r['score']} -- {t['subject'][:60]}")
         print(f"    kind={t['kind']} sponsor={t['sponsor'][:40]} reward=${t['reward_usd']:,} "
               f"top=${t['top_prize_usd']:,} {dl} eligibility={t['eligibility']}")
         print(f"    why: {r['reason']}")
 
-    # 4. draft work plan for the top GO pick (no auto-apply — plan only)
+    # 4. draft work plan for the top GO pick (no auto-apply -- plan only)
     gos = [(t, r) for t, r in opportunities if r["decision"] == "GO"]
     if gos:
         t, r = gos[0]
         print("\n" + "=" * 64)
-        print(f"DRAFT WORK PLAN — top pick (score {r['score']})")
+        print(f"DRAFT WORK PLAN -- top pick (score {r['score']})")
         print(f"{t['subject'][:64]}")
         print("=" * 64)
         print("  [ ] Re-read the announcement and confirm eligibility + deadline")
@@ -350,7 +350,7 @@ def main():
     credits = sum(c for _, _, c in API_CALLS)
     print(f"\n[api] {len(API_CALLS)} calls, ~{credits} credits (Free tier: 1,000/period)")
 
-    print("\nDone. Read-only run — nothing was sent, applied, or spent.")
+    print("\nDone. Read-only run -- nothing was sent, applied, or spent.")
 
 
 if __name__ == "__main__":
